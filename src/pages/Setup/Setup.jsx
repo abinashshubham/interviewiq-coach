@@ -1,6 +1,7 @@
+// src/pages/Setup/Setup.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion'; // Using framer-motion imports or layout structures
+import { motion } from 'framer-motion';
 import { FiBriefcase, FiSliders, FiLayers, FiCheckCircle } from 'react-icons/fi';
 import './Setup.css';
 
@@ -22,9 +23,13 @@ export default function Setup() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const finalRole = role === 'Custom' ? customRole : role;
-    if (!finalRole) return alert('Please specify a valid career target role.');
+    
+    if (!finalRole || finalRole.trim() === '') {
+      alert('Please specify a valid career target role.');
+      return;
+    }
 
-    // Save configuration parameters to LocalStorage for processing on the runtime page
+    // Persist configuration settings locally for target page simulation ingestion
     localStorage.setItem('interview_setup', JSON.stringify({
       role: finalRole,
       level,
@@ -43,6 +48,7 @@ export default function Setup() {
       </header>
 
       <form onSubmit={handleSubmit} className="setup-form-wrapper">
+        
         {/* Step 1: Role Configuration */}
         <div className="setup-card">
           <div className="card-indicator"><FiBriefcase /></div>
@@ -50,32 +56,39 @@ export default function Setup() {
           
           <div className="roles-pill-grid">
             {popularRoles.map((r) => (
-              <button
+              <motion.button
                 type="button"
                 key={r}
                 className={`pill-btn ${role === r ? 'active' : ''}`}
                 onClick={() => { setRole(r); setCustomRole(''); }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
               >
                 {r}
-              </button>
+              </motion.button>
             ))}
-            <button
+            <motion.button
               type="button"
               className={`pill-btn ${role === 'Custom' ? 'active' : ''}`}
               onClick={() => setRole('Custom')}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
             >
               Other / Custom Role
-            </button>
+            </motion.button>
           </div>
 
           {role === 'Custom' && (
-            <input
+            <motion.input
               type="text"
               placeholder="e.g. Senior Staff Site Reliability Engineer..."
               className="custom-role-input"
               value={customRole}
               onChange={(e) => setCustomRole(e.target.value)}
               required
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
             />
           )}
         </div>
@@ -86,9 +99,11 @@ export default function Setup() {
           <h3>Select Seniority Baseline</h3>
           <div className="tier-selector-grid">
             {['Junior', 'Intermediate', 'Senior', 'Staff / Lead'].map((tier) => (
-              <label 
+              <motion.label 
                 key={tier} 
                 className={`tier-radio-card ${level === tier ? 'active' : ''}`}
+                whileHover={{ scale: 1.02, backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
+                whileTap={{ scale: 0.98 }}
               >
                 <input 
                   type="radio" 
@@ -98,7 +113,7 @@ export default function Setup() {
                   onChange={(e) => setLevel(e.target.value)} 
                 />
                 <span>{tier}</span>
-              </label>
+              </motion.label>
             ))}
           </div>
         </div>
@@ -121,10 +136,15 @@ export default function Setup() {
         </div>
 
         {/* Execution Pipeline Button Trigger */}
-        <button type="submit" className="initialize-engine-btn">
+        <motion.button 
+          type="submit" 
+          className="initialize-engine-btn"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
           <FiCheckCircle />
           <span>Deploy Simulation Environment</span>
-        </button>
+        </motion.button>
       </form>
     </div>
   );

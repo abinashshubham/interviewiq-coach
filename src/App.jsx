@@ -1,3 +1,4 @@
+// src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
@@ -7,19 +8,20 @@ import Setup from './pages/Setup/Setup';
 import Interview from './pages/Interview/Interview';
 import Result from './pages/Result/Result';
 import History from './pages/History/History';
+import PageTransition from './components/PageTransition/PageTransition';
 
 export default function App() {
   return (
     <Router>
       <Navbar />
-      <main>
+      <main style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 70px)' }}>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/setup" element={<Setup />} />
-          <Route path="/interview" element={<Interview />} />
-          <Route path="/result" element={<Result />} />
-          <Route path="/history" element={<History />} />
+          <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+          <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
+          <Route path="/setup" element={<PageTransition><Setup /></PageTransition>} />
+          <Route path="/interview" element={<PageTransition><Interview /></PageTransition>} />
+          <Route path="/result" element={<PageTransition><Result /></PageTransition>} />
+          <Route path="/history" element={<PageTransition><History /></PageTransition>} />
         </Routes>
       </main>
     </Router>
