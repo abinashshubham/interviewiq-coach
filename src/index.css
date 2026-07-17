@@ -1,0 +1,65 @@
+/* Import Modern Typography */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap');
+
+:root {
+  /* Design Tokens / Colors */
+  --bg-color: #0B1020;
+  --card-bg: rgba(255, 255, 255, 0.08);
+  --primary-color: #6C63FF;
+  --secondary-color: #00D4FF;
+  --accent-color: #FF4D8D;
+  --text-main: #FFFFFF;
+  --text-muted: #AAB2C0;
+  --border-color: rgba(255, 255, 255, 0.12);
+  --glass-blur: blur(12px);
+  
+  /* Fonts */
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  min-height: 100vh;
+  /* Premium Deep Space Ambient Gradient */
+  background: radial-gradient(circle at 50% 0%, #151c3a 0%, var(--bg-color) 70%);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Add to bottom of src/index.css */
+.page-container {
+  min-height: calc(100vh - 80px); /* accounting for a standard navbar offset */
+  padding: 40px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
