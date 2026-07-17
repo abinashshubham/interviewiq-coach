@@ -1,26 +1,27 @@
 // vite.config.js
 import { defineConfig } from 'vite';
-import react from '@vitejs/react-plugin'; // Standard Vite React compiler layer injection
+import react from '@vitejs/react-plugin';
 
 export default defineConfig({
+  // Add your repository name wrapped in slashes here:
+  base: '/interviewiq-coach/', 
   plugins: [react()],
   build: {
     rollupOptions: {
       output: {
-        // Splitting large vendor packages to maximize async browser downloads
         manualChunks(id) {
           if (id.includes('node_modules')) {
             if (id.includes('chart.js') || id.includes('react-chartjs-2')) {
-              return 'vendor-charts'; // Heavy analytical layer chunk
+              return 'vendor-charts';
             }
             if (id.includes('framer-motion')) {
-              return 'vendor-animations'; // Layout animation layer chunk
+              return 'vendor-animations';
             }
-            return 'vendor-core'; // Standard runtime dependencies (axios, router, etc.)
+            return 'vendor-core';
           }
         }
       }
     },
-    chunkSizeWarningLimit: 600 // Raise baseline to accommodate structured layout engines cleanly
+    chunkSizeWarningLimit: 600
   }
 });
