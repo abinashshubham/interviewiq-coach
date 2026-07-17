@@ -1,3 +1,4 @@
+// src/components/Navbar/Navbar.jsx
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { GiBrain } from 'react-icons/gi';

@@ -1,3 +1,4 @@
+/* Layout & Structural Containers */
 .dashboard-layout {
   display: flex;
   min-height: calc(100vh - 70px);
@@ -10,6 +11,7 @@
   max-width: 1200px;
 }
 
+/* Header Typography */
 .dashboard-header {
   margin-bottom: 36px;
 }
@@ -24,6 +26,7 @@
   font-size: 1rem;
 }
 
+/* Metrics Section Grid */
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -66,6 +69,102 @@
   color: var(--text-main);
 }
 
+/* Visuals, Charts & Radar Layout */
+.dashboard-visuals-split-row {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.visuals-chart-container-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  backdrop-filter: var(--glass-blur);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* CRITICAL: Prevents flex children from pushing past parent boundaries */
+  width: 100%;
+}
+
+.chart-header-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.chart-title-icon {
+  color: var(--secondary-color);
+  font-size: 1.2rem;
+}
+
+.chart-header-block h3 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.radar-canvas-frame {
+  position: relative;
+  height: 280px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Call-to-Action & Fallbacks */
+.dashboard-quick-actions-card {
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.08) 0%, rgba(0, 214, 255, 0.03) 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.dashboard-quick-actions-card h3 {
+  font-size: 1.3rem;
+  color: var(--text-main);
+}
+
+.dashboard-quick-actions-card p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.dashboard-launch-btn {
+  background: var(--primary-color);
+  color: var(--text-main);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(108, 99, 255, 0.2);
+}
+
+.dashboard-launch-btn:hover {
+  transform: translateY(-2px);
+  background: #5b52e6;
+  box-shadow: 0 6px 18px rgba(108, 99, 255, 0.3);
+}
+
+.dashboard-empty-fallback-tile {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--border-color);
+  border-radius: 10px;
+  padding: 32px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* Recent Content Blocks */
 .recent-section {
   display: flex;
   flex-direction: column;
@@ -83,6 +182,65 @@
   gap: 24px;
 }
 
+/* ==========================================================================
+   Comprehensive Adaptive Breakpoints (Combined & Streamlined)
+   ========================================================================== */
+
 @media (max-width: 992px) {
-  .dashboard-content { padding: 24px; }
+  .dashboard-content { 
+    padding: 24px; 
+  }
+  
+  .dashboard-visuals-split-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .radar-canvas-frame {
+    height: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+  
+  .dashboard-content {
+    padding: 20px 16px;
+    width: 100%;
+  }
+  
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  
+  .metric-tile {
+    padding: 16px;
+  }
+  
+  .dashboard-visuals-split-row {
+    margin-bottom: 32px;
+  }
+
+  .visuals-chart-container-card {
+    padding: 16px; /* Reduce padding on mobile to maximize canvas space */
+  }
+  
+  .radar-canvas-frame {
+    height: 240px; /* Marginally downscale height to fit mobile viewports perfectly */
+  }
+  
+  .recent-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .radar-canvas-frame {
+    height: 200px; /* Extra protection layout for extra narrow devices */
+  }
 }

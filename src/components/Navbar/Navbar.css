@@ -71,3 +71,40 @@
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
 }
+
+/* ==========================================
+   Responsive Breakpoints for Premium Navbar
+   ========================================== */
+
+@media (max-width: 768px) {
+  .navbar {
+    height: auto; /* Allow navbar framework container to scale vertically */
+    padding: 12px 0;
+  }
+
+  .navbar-container {
+    flex-direction: column; /* Stack logo branding directly above navigation links */
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-links {
+    gap: 16px; /* Bring text targets closer together on extra narrow viewports */
+    width: 100%;
+    justify-content: center;
+  }
+
+  .nav-link {
+    font-size: 0.85rem;
+  }
+
+  .nav-btn {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+  }
+}

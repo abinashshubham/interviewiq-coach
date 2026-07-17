@@ -167,3 +167,50 @@
   transform: translateY(-2px);
   box-shadow: 0 6px 24px rgba(108, 99, 255, 0.4);
 }
+
+/* src/pages/Setup/Setup.css - Adaptive Tuning */
+@media (max-width: 600px) {
+  .setup-container {
+    padding: 20px 16px;
+  }
+  
+  .setup-card {
+    padding: 20px;
+  }
+  
+  .card-indicator {
+    top: 20px;
+    right: 20px;
+    font-size: 1.1rem;
+  }
+  
+  .roles-pill-grid {
+    gap: 8px;
+  }
+  
+  .pill-btn {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+  
+  .tier-selector-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .count-slider-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .count-display-badge {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .initialize-engine-btn {
+    font-size: 1rem;
+    padding: 14px;
+  }
+}
