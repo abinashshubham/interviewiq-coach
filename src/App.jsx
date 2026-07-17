@@ -2,12 +2,12 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-// Core structural layout items are imported statically (fastest entry paint)
+// Core structural layout items are imported statically (fastest initial paint)
 import Navbar from './components/Navbar/Navbar';
 import Loader from './components/Loader/Loader';
 import PageTransition from './components/PageTransition/PageTransition';
 
-// Route chunks are loaded dynamically on demand using React.lazy
+// Route chunks are loaded dynamically on demand using React.lazy for optimized bundle chunks
 const Home = lazy(() => import('./pages/Home/Home'));
 const Dashboard = lazy(() => import('./pages/Dashboard/Dashboard'));
 const Setup = lazy(() => import('./pages/Setup/Setup'));
@@ -17,10 +17,15 @@ const History = lazy(() => import('./pages/History/History'));
 
 export default function App() {
   return (
-    <Router>
+    /* 
+       React Router reads the dynamic variable from Vite automatically.
+       - On Local Dev: Maps to '/'
+       - On Production Build: Maps to '/interviewiq-coach/'
+    */
+    <Router basename={import.meta.env.BASE_URL}>
       <Navbar />
       <main style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 70px)' }}>
-        {/* Suspense intercepts lazy chunks and presents our branded spinner during lazy downloads */}
+        {/* Suspense intercepts lazy chunks and presents our premium spinner during code-splitting downloads */}
         <Suspense fallback={<Loader message="Hydrating workspace assets..." />}>
           <Routes>
             <Route path="/" element={<PageTransition><Home /></PageTransition>} />
