@@ -1,32 +1,53 @@
 // src/pages/Result/Result.jsx
-import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { evaluateAnswer } from '../../services/gemini';
-import ScoreCard from '../../components/ScoreCard/ScoreCard';
-import FeedbackCard from '../../components/FeedbackCard/FeedbackCard';
-import Loader from '../../components/Loader/Loader';
-import { FiHome, FiTrendingUp } from 'react-icons/fi';
-import './Result.css';
+import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { evaluateAnswer } from "../../services/gemini";
+import ScoreCard from "../../components/ScoreCard/ScoreCard";
+import FeedbackCard from "../../components/FeedbackCard/FeedbackCard";
+import Loader from "../../components/Loader/Loader";
+import { FiHome, FiTrendingUp } from "react-icons/fi";
+import "./Result.css";
 
 export default function Result() {
   const navigate = useNavigate();
   const hasEvaluated = useRef(false);
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState('');
-  const [level, setLevel] = useState('');
+  const [role, setRole] = useState("");
+  const [level, setLevel] = useState("");
   const [evaluations, setEvaluations] = useState([]);
   const [aggregateScore, setAggregateScore] = useState(0);
 
+  // Update the useEffect block inside src/pages/Result/Result.jsx
   useEffect(() => {
-    // Prevent duplicate evaluation requests in React 18 Strict Mode
+    const params = new URLSearchParams(window.location.search);
+    const historicId = params.get("id");
+
+    // Case A: Loading an existing historical record
+    if (historicId) {
+      const pastSessions = JSON.parse(
+        localStorage.getItem("interview_history") || "[]",
+      );
+      const matchedSession = pastSessions.find((s) => s.id === historicId);
+
+      if (matchedSession) {
+        setRole(matchedSession.role);
+        setLevel(matchedSession.level);
+        setAggregateScore(matchedSession.score);
+        setEvaluations(matchedSession.details);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Case B: Processing a freshly completed active session
     if (hasEvaluated.current) return;
 
-    const setupStr = localStorage.getItem('interview_setup');
-    const questionsStr = localStorage.getItem('active_session_questions');
-    const answersStr = localStorage.getItem('active_session_answers');
+    const setupStr = localStorage.getItem("interview_setup");
+    const questionsStr = localStorage.getItem("active_session_questions");
+    const answersStr = localStorage.getItem("active_session_answers");
 
     if (!setupStr || !questionsStr || !answersStr) {
-      navigate('/setup');
+      navigate("/setup");
       return;
     }
 
@@ -44,16 +65,20 @@ export default function Result() {
         const results = [];
         let scoreSum = 0;
 
-        // Process evaluations sequentially to avoid rapid token rate-limiting spikes
         for (let i = 0; i < questions.length; i++) {
           const qObj = questions[i];
           const userAns = answers[i] || "No response provided.";
-          
-          const evalData = await evaluateAnswer(parsedRole, parsedLevel, qObj.question, userAns);
+          const evalData = await evaluateAnswer(
+            parsedRole,
+            parsedLevel,
+            qObj.question,
+            userAns,
+          );
+
           results.push({
             question: qObj.question,
             answer: userAns,
-            evaluation: evalData
+            evaluation: evalData,
           });
           scoreSum += evalData.score;
         }
@@ -62,35 +87,51 @@ export default function Result() {
         setAggregateScore(calculatedAverage);
         setEvaluations(results);
 
-        // Append historical record framework for LocalStorage integration in the next step
-        const pastSessions = JSON.parse(localStorage.getItem('interview_history') || '[]');
+        const pastSessions = JSON.parse(
+          localStorage.getItem("interview_history") || "[]",
+        );
         const currentLog = {
           id: Date.now().toString(),
           role: parsedRole,
           level: parsedLevel,
           score: calculatedAverage,
-          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-          details: results
+          date: new Date().toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          }),
+          details: results,
         };
-        localStorage.setItem('interview_history', JSON.stringify([currentLog, ...pastSessions]));
+        localStorage.setItem(
+          "interview_history",
+          JSON.stringify([currentLog, ...pastSessions]),
+        );
+
+        // Clear volatile storage so refreshing doesn't regenerate the session
+        localStorage.removeItem("active_session_questions");
+        localStorage.removeItem("active_session_answers");
 
         setLoading(false);
       } catch (err) {
-        alert(err.message || 'Error executing intelligence diagnostics parsing pipelines.');
-        navigate('/setup');
+        alert(err.message || "Error executing analytics processing pipelines.");
+        navigate("/setup");
       }
     }
 
     processEvaluations();
   }, [navigate]);
 
-  if (loading) return <Loader message="Analyzing Technical Response Vectors..." />;
+  if (loading)
+    return <Loader message="Analyzing Technical Response Vectors..." />;
 
   return (
     <div className="result-page-container">
       <header className="result-view-header">
         <h1>Evaluation Analytics</h1>
-        <p>Review comprehensive score assessments generated by the AI architectural evaluation model.</p>
+        <p>
+          Review comprehensive score assessments generated by the AI
+          architectural evaluation model.
+        </p>
       </header>
 
       <div className="result-summary-section">
@@ -111,10 +152,16 @@ export default function Result() {
       </section>
 
       <div className="result-navigation-row">
-        <button onClick={() => navigate('/dashboard')} className="action-nav-btn secondary">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="action-nav-btn secondary"
+        >
           <FiHome /> <span>Dashboard Overview</span>
         </button>
-        <button onClick={() => navigate('/setup')} className="action-nav-btn primary">
+        <button
+          onClick={() => navigate("/setup")}
+          className="action-nav-btn primary"
+        >
           <FiTrendingUp /> <span>Initialize New Session</span>
         </button>
       </div>
