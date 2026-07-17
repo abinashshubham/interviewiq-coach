@@ -1,9 +1,9 @@
 // vite.config.js
 import { defineConfig } from 'vite';
-import react from '@vitejs/react-plugin';
+import react from '@vitejs/plugin-react'; // <-- FIXED THIS LINE
 
 export default defineConfig({
-  // Add your repository name wrapped in slashes here:
+  // Keeps asset directories mapped correctly under GitHub repository subfolders
   base: '/interviewiq-coach/', 
   plugins: [react()],
   build: {
