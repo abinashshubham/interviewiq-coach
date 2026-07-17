@@ -1,8 +1,6 @@
-// src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
-// Import Page Components
+import Navbar from './components/Navbar/Navbar';
 import Home from './pages/Home/Home';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Setup from './pages/Setup/Setup';
@@ -13,7 +11,7 @@ import History from './pages/History/History';
 export default function App() {
   return (
     <Router>
-      {/* Structural layout components like Navbar can be placed here later */}
+      <Navbar />
       <main>
         <Routes>
           <Route path="/" element={<Home />} />

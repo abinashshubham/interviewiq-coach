@@ -1,12 +1,12 @@
-// src/pages/Interview/Interview.jsx
+// src/pages/Result/Result.jsx
 import React from 'react';
-import './Interview.css';
+import './Result.css';
 
-export default function Interview() {
+export default function Result() {
   return (
-    <div className="page-container interview-page">
-      <h1>Active Simulation Workspace</h1>
-      <p>Speak or type your responses cleanly to the active engine questions.</p>
+    <div className="page-container result-page">
+      <h1>Performance Assessment</h1>
+      <p>Comprehensive AI-evaluated architectural feedback and scores.</p>
     </div>
   );
 }
