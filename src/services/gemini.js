@@ -1,51 +1,83 @@
 // src/services/gemini.js
 import axios from 'axios';
 
-// Retrieve the API key from Vite's environment variables
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const RAW_KEY = import.meta.env.VITE_HF_API_KEY;
+const API_KEY = RAW_KEY ? RAW_KEY.trim() : '';
 
-// Using the standard, reliable Gemini Flash model endpoint for fast JSON generation
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+// 🎯 FIXED: Universal Hugging Face Router for serverless models
+const BASE_URL = 'https://router.huggingface.co/v1/chat/completions';
+const MODEL_NAME = 'meta-llama/Llama-3.3-70B-Instruct';
+
+/**
+ * Helper utility that handles 429 rate limit exceptions safely.
+ */
+async function postWithRetry(url, data, retries = 3, delay = 2500) {
+  try {
+    return await axios.post(url, data, {
+      headers: { 
+        'Authorization': `Bearer ${API_KEY}`,
+        'Content-Type': 'application/json' 
+      }
+    });
+  } catch (error) {
+    if (error.response?.status === 429 && retries > 0) {
+      console.warn(`[HF API] Rate limit hit. Retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return postWithRetry(url, data, retries - 1, delay * 2);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Extracts clean JSON string blocks out of open-source raw conversational texts.
+ */
+function cleanAndParseJSON(text) {
+  try {
+    const jsonMatch = text.match(/```json([\s\S]*?)```/);
+    const targetString = jsonMatch ? jsonMatch[1].trim() : text.trim();
+    return JSON.parse(targetString);
+  } catch (e) {
+    console.error("Failed to parse output as clean JSON grid items:", text);
+    throw new Error("Model returned invalid structure.");
+  }
+}
 
 /**
  * Generates technical interview questions based on user configuration.
  */
 export async function generateQuestions(role, level, count) {
-  if (!API_KEY) {
-    throw new Error('API Key is missing. Please check your .env file.');
-  }
+  if (!API_KEY) throw new Error('Hugging Face API Key is missing. Check your .env file.');
 
-  const prompt = `
-    You are an expert technical interviewer hiring for a ${level} ${role}.
-    Generate exactly ${count} technical and behavioral interview questions.
-    
-    CRITICAL: You must respond ONLY with a valid JSON array of objects. Do not include markdown formatting, code blocks, or extra text.
-    Each object in the array must have exactly this schema:
-    {
-      "id": 1,
-      "category": "Technical | Behavioral | Situational",
-      "question": "The interview question text here",
-      "expectedFocus": "Brief note on what a good answer should cover"
-    }
-  `;
+  const systemMessage = `You are an expert technical interviewer hiring for a ${level} ${role}. Generate exactly ${count} questions. 
+CRITICAL: Return ONLY a raw JSON array. Wrap the array in a markdown code block like: \`\`\`json [ ... ] \`\`\`. Do not include any conversational pleasantries or preamble.`;
+
+  const userPrompt = `Each object in the array must have exactly this schema:
+[
+  {
+    "id": 1,
+    "category": "Technical",
+    "question": "The interview question text here",
+    "expectedFocus": "Brief note on what a good answer should cover"
+  }
+]`;
 
   try {
-    const response = await axios.post(GEMINI_URL, {
-      contents: [{
-        parts: [{ text: prompt }]
-      }],
-      generationConfig: {
-        temperature: 0.7,
-        responseMimeType: "application/json" // Enforces clean JSON output from Gemini
-      }
+    const response = await postWithRetry(BASE_URL, {
+      model: MODEL_NAME,
+      messages: [
+        { role: "system", content: systemMessage },
+        { role: "user", content: userPrompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 1500
     });
 
-    const rawText = response.data.candidates[0].content.parts[0].text;
-    const questions = JSON.parse(rawText);
-    return questions;
+    const rawText = response.data.choices[0].message.content;
+    return cleanAndParseJSON(rawText);
   } catch (error) {
-    console.error('Error generating questions from Gemini:', error);
-    throw new Error('Failed to generate interview questions. Please try again.');
+    console.error('Error generating questions from HF:', error);
+    throw new Error('Failed to generate interview questions. Please retry.');
   }
 }
 
@@ -53,44 +85,38 @@ export async function generateQuestions(role, level, count) {
  * Evaluates a user's interview answer and provides structured feedback.
  */
 export async function evaluateAnswer(role, level, question, userResponse) {
-  if (!API_KEY) {
-    throw new Error('API Key is missing. Please check your .env file.');
-  }
+  if (!API_KEY) throw new Error('Hugging Face API Key is missing. Check your .env file.');
 
-  const prompt = `
-    You are a Lead Software Architect interviewing a candidate for a ${level} ${role} position.
-    
-    Question Asked: "${question}"
-    Candidate's Answer: "${userResponse}"
-    
-    Evaluate the candidate's response rigorously. 
-    CRITICAL: Respond ONLY with a valid JSON object matching this exact schema:
-    {
-      "score": 85,
-      "strengths": ["Point 1", "Point 2"],
-      "weaknesses": ["Point 1", "Point 2"],
-      "suggestedAnswer": "An ideal, professional response to this question.",
-      "improvementTips": "Actionable advice to improve next time."
-    }
-    The score must be a number between 0 and 100.
-  `;
+  const systemMessage = `You are a Lead Software Architect evaluating a candidate for a ${level} ${role} position.
+Question: "${question}"
+Candidate's Answer: "${userResponse}"
+
+Evaluate rigorously. CRITICAL: Return ONLY a valid JSON object wrapped inside a \`\`\`json ... \`\`\` code block.`;
+
+  const userPrompt = `Match this exact schema layout structure:
+{
+  "score": 85,
+  "strengths": ["Point 1", "Point 2"],
+  "weaknesses": ["Point 1", "Point 2"],
+  "suggestedAnswer": "An ideal response text details here.",
+  "improvementTips": "Actionable advice string here."
+}`;
 
   try {
-    const response = await axios.post(GEMINI_URL, {
-      contents: [{
-        parts: [{ text: prompt }]
-      }],
-      generationConfig: {
-        temperature: 0.5,
-        responseMimeType: "application/json"
-      }
+    const response = await postWithRetry(BASE_URL, {
+      model: MODEL_NAME,
+      messages: [
+        { role: "system", content: systemMessage },
+        { role: "user", content: userPrompt }
+      ],
+      temperature: 0.3,
+      max_tokens: 1500
     });
 
-    const rawText = response.data.candidates[0].content.parts[0].text;
-    const feedback = JSON.parse(rawText);
-    return feedback;
+    const rawText = response.data.choices[0].message.content;
+    return cleanAndParseJSON(rawText);
   } catch (error) {
-    console.error('Error evaluating answer:', error);
-    throw new Error('Failed to evaluate your answer. Please try again.');
+    console.error('Error evaluating answer via HF:', error);
+    throw new Error('Failed to evaluate your answer. Please retry.');
   }
 }
