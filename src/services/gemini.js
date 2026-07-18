@@ -1,27 +1,27 @@
 // src/services/gemini.js
 import axios from 'axios';
 
+// Universal Hugging Face Router for serverless models
 const BASE_URL = 'https://router.huggingface.co/v1/chat/completions';
 const MODEL_NAME = 'meta-llama/Llama-3.3-70B-Instruct';
 
 /**
- * Dynamically retrieves the API token safely
+ * Dynamically retrieves the token strictly from the user's browser localStorage.
+ * This guarantees no hardcoded secrets get compiled into the production bundle.
  */
 function getApiKey() {
-  // 1. Check if the user has saved a key in their browser
   const userSavedKey = localStorage.getItem('USER_HF_API_KEY');
-  if (userSavedKey) return userSavedKey.trim();
-
-  // 2. Otherwise fall back to the environment configuration
-  const envKey = import.meta.env.VITE_HF_API_KEY;
-  return envKey ? envKey.trim() : '';
+  return userSavedKey ? userSavedKey.trim() : '';
 }
 
+/**
+ * Helper utility that handles 429 rate limit exceptions safely with exponential backoff.
+ */
 async function postWithRetry(url, data, retries = 3, delay = 2500) {
   const apiKey = getApiKey();
   
   if (!apiKey) {
-    throw new Error('API Token missing. Please add an API key.');
+    throw new Error('API Token missing. Please add your Hugging Face API key in the setup panel.');
   }
 
   try {
@@ -41,17 +41,23 @@ async function postWithRetry(url, data, retries = 3, delay = 2500) {
   }
 }
 
+/**
+ * Extracts clean JSON string blocks out of open-source raw conversational texts.
+ */
 function cleanAndParseJSON(text) {
   try {
     const jsonMatch = text.match(/```json([\s\S]*?)```/);
     const targetString = jsonMatch ? jsonMatch[1].trim() : text.trim();
     return JSON.parse(targetString);
   } catch (e) {
-    console.error("Failed to parse output as clean JSON grid items:", text);
-    throw new Error("Model returned invalid structure.");
+    console.error("Failed to parse output as clean JSON items:", text);
+    throw new Error("The AI model returned an unexpected response format. Please try again.");
   }
 }
 
+/**
+ * Generates technical interview questions based on user configuration.
+ */
 export async function generateQuestions(role, level, count) {
   const systemMessage = `You are an expert technical interviewer hiring for a ${level} ${role}. Generate exactly ${count} questions. 
 CRITICAL: Return ONLY a raw JSON array. Wrap the array in a markdown code block like: \`\`\`json [ ... ] \`\`\`. Do not include any conversational pleasantries or preamble.`;
@@ -85,6 +91,9 @@ CRITICAL: Return ONLY a raw JSON array. Wrap the array in a markdown code block 
   }
 }
 
+/**
+ * Evaluates a user's interview answer and provides structured feedback.
+ */
 export async function evaluateAnswer(role, level, question, userResponse) {
   const systemMessage = `You are a Lead Software Architect evaluating a candidate for a ${level} ${role} position.
 Question: "${question}"

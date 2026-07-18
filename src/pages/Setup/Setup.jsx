@@ -20,7 +20,7 @@ export default function Setup() {
   const [level, setLevel] = useState('Intermediate');
   const [count, setCount] = useState(5);
   
-  // API Key state management synced with localStorage
+  // Dynamic Token State linked securely to client-side localStorage
   const [apiKey, setApiKey] = useState(localStorage.getItem('USER_HF_API_KEY') || '');
   const [showKey, setShowKey] = useState(false);
   const [keySaved, setKeySaved] = useState(false);
@@ -36,6 +36,7 @@ export default function Setup() {
     e.preventDefault();
     const finalRole = role === 'Custom' ? customRole : role;
     
+    // Validate token exists in storage before letting the user proceed
     if (!localStorage.getItem('USER_HF_API_KEY')?.trim() && !apiKey.trim()) {
       alert('Please provide and save a valid Hugging Face API key before deploying the simulation.');
       return;
@@ -46,7 +47,7 @@ export default function Setup() {
       return;
     }
 
-    // Persist configuration settings locally for target page simulation ingestion
+    // Persist session choices configuration locally
     localStorage.setItem('interview_setup', JSON.stringify({
       role: finalRole,
       level,
@@ -64,7 +65,7 @@ export default function Setup() {
         <p>Fine-tune target configurations to initialize custom technical environments.</p>
       </header>
 
-      {/* Step 0: Security Credentials Configuration */}
+      {/* Step 0: Security Credentials Configuration Card */}
       <div className="setup-form-wrapper" style={{ marginBottom: '20px' }}>
         <div className="setup-card" style={{ border: '1px solid rgba(255, 255, 255, 0.1)' }}>
           <div className="card-indicator" style={{ background: 'linear-gradient(135deg, #ff9900, #ff5500)' }}><FiKey /></div>
@@ -72,6 +73,7 @@ export default function Setup() {
           <p style={{ fontSize: '13px', color: '#aaa', marginBottom: '15px', marginTop: '-5px' }}>
             Provide your free Hugging Face User Access Token (`hf_...`) to run secure, unlimited technical simulations.
           </p>
+          
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', position: 'relative' }}>
             <div style={{ position: 'relative', flexGrow: 1 }}>
               <input 
@@ -109,6 +111,7 @@ export default function Setup() {
                 {showKey ? <FiEyeOff size={16} /> : <FiEye size={16} />}
               </button>
             </div>
+            
             <motion.button 
               type="button"
               onClick={handleSaveKey} 
