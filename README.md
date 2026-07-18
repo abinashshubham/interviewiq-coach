@@ -1,16 +1,45 @@
-# React + Vite
+# 🧠 InterviewIQ — AI Interview Coach
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD622)](https://vitejs.dev/)
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-121212?style=for-the-badge&logo=googlegemini&logoColor=8E75FF)](https://ai.google.dev/)
+[![Framer Motion](https://img.shields.io/badge/Framer%20Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)](https://www.framer.com/motion/)
 
-Currently, two official plugins are available:
+An advanced, fully responsive AI-powered technical mock interview simulation engine. **InterviewIQ** acts as an adaptive sandbox environment, assessing candidate capabilities across distinct architectural competencies, generating tailored technical loops using the Gemini API, and mapping performance matrices via interactive data visuals.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+🎯 **Live Production Build:** [View Live Deployment](https://abinashshubham.github.io/interviewiq-coach/)
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## ✨ Features
 
-## Expanding the ESLint configuration
+*   **⚡ Smart Environment Initialization:** Configure role profiles dynamically (Frontend, Backend, DevOps, or custom niche targets) across multi-tiered seniority baselines.
+*   **🤖 Real-Time Conversational AI Engine:** Implements synchronous question-and-answer loops utilizing structural system prompts backed by Google's Gemini models.
+*   **📊 Competency Footprint Mapping:** Processes individual session scores to generate full dynamic multi-axis **Radar Charts** tracking Code Architecture, Problem Solving, and Domain Vocabulary.
+*   **💾 Local Session History Storage:** Persists past evaluation logs locally to enable historical timeline audits and continuous practice tracking.
+*   **✨ Fluid Micro-Interactions:** Enhanced with high-premium cubic layout entry animations powered by `framer-motion`.
+*   **🚀 Ultra-Performant Splitting:** Optimized production code bundles using dynamic lazy loading structures and explicit vendor chunk divisions.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🛠️ Tech Stack & Architecture
+
+*   **Frontend Core:** React 18, Vite, React Router DOM (Environment-Aware Context)
+*   **State & Transitions:** Framer Motion (GPU Accelerated Animations)
+*   **Analytics Visualization:** Chart.js + React-Chartjs-2 (Fluid Canvas Enclosures)
+*   **AI Orchestration:** `@google/generative-ai` integration
+*   **Styling & Responsiveness:** Pure CSS Context Variables, Glassmorphic Flex Grids, Layered Media Breakpoints (No heavy external UI utility bloat)
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+Ensure you have **Node.js** (v20+ recommended) and **npm** installed on your system.
+
+### 2. Installation
+Clone the repository and install the development dependencies:
+```bash
+git clone [https://github.com/abinashshubham/interviewiq-coach.git](https://github.com/abinashshubham/interviewiq-coach.git)
+cd interviewiq-coach
+npm install
