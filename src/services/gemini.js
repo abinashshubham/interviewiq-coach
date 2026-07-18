@@ -2,8 +2,7 @@
 import axios from 'axios';
 
 // Retrieve the API key from Vite's environment variables
-// const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const API_KEY = 'AQ.Ab8RN6JuPZ48ZnD0Nzl4XvdpeGleBkdbjXWntCThoyHtVNuYQQ';
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 // Using the standard, reliable Gemini Flash model endpoint for fast JSON generation
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
