@@ -1,21 +1,33 @@
 // src/services/gemini.js
 import axios from 'axios';
 
-const RAW_KEY = import.meta.env.VITE_HF_API_KEY;
-const API_KEY = RAW_KEY ? RAW_KEY.trim() : '';
-
-// 🎯 FIXED: Universal Hugging Face Router for serverless models
 const BASE_URL = 'https://router.huggingface.co/v1/chat/completions';
 const MODEL_NAME = 'meta-llama/Llama-3.3-70B-Instruct';
 
 /**
- * Helper utility that handles 429 rate limit exceptions safely.
+ * Dynamically retrieves the API token safely
  */
+function getApiKey() {
+  // 1. Check if the user has saved a key in their browser
+  const userSavedKey = localStorage.getItem('USER_HF_API_KEY');
+  if (userSavedKey) return userSavedKey.trim();
+
+  // 2. Otherwise fall back to the environment configuration
+  const envKey = import.meta.env.VITE_HF_API_KEY;
+  return envKey ? envKey.trim() : '';
+}
+
 async function postWithRetry(url, data, retries = 3, delay = 2500) {
+  const apiKey = getApiKey();
+  
+  if (!apiKey) {
+    throw new Error('API Token missing. Please add an API key.');
+  }
+
   try {
     return await axios.post(url, data, {
       headers: { 
-        'Authorization': `Bearer ${API_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json' 
       }
     });
@@ -29,9 +41,6 @@ async function postWithRetry(url, data, retries = 3, delay = 2500) {
   }
 }
 
-/**
- * Extracts clean JSON string blocks out of open-source raw conversational texts.
- */
 function cleanAndParseJSON(text) {
   try {
     const jsonMatch = text.match(/```json([\s\S]*?)```/);
@@ -43,12 +52,7 @@ function cleanAndParseJSON(text) {
   }
 }
 
-/**
- * Generates technical interview questions based on user configuration.
- */
 export async function generateQuestions(role, level, count) {
-  if (!API_KEY) throw new Error('Hugging Face API Key is missing. Check your .env file.');
-
   const systemMessage = `You are an expert technical interviewer hiring for a ${level} ${role}. Generate exactly ${count} questions. 
 CRITICAL: Return ONLY a raw JSON array. Wrap the array in a markdown code block like: \`\`\`json [ ... ] \`\`\`. Do not include any conversational pleasantries or preamble.`;
 
@@ -77,16 +81,11 @@ CRITICAL: Return ONLY a raw JSON array. Wrap the array in a markdown code block 
     return cleanAndParseJSON(rawText);
   } catch (error) {
     console.error('Error generating questions from HF:', error);
-    throw new Error('Failed to generate interview questions. Please retry.');
+    throw error;
   }
 }
 
-/**
- * Evaluates a user's interview answer and provides structured feedback.
- */
 export async function evaluateAnswer(role, level, question, userResponse) {
-  if (!API_KEY) throw new Error('Hugging Face API Key is missing. Check your .env file.');
-
   const systemMessage = `You are a Lead Software Architect evaluating a candidate for a ${level} ${role} position.
 Question: "${question}"
 Candidate's Answer: "${userResponse}"
@@ -117,6 +116,6 @@ Evaluate rigorously. CRITICAL: Return ONLY a valid JSON object wrapped inside a 
     return cleanAndParseJSON(rawText);
   } catch (error) {
     console.error('Error evaluating answer via HF:', error);
-    throw new Error('Failed to evaluate your answer. Please retry.');
+    throw error;
   }
 }
