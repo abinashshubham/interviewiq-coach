@@ -1,0 +1,72 @@
+/* src/components/ScoreCard/ScoreCard.css */
+.score-card-wrapper {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  backdrop-filter: var(--glass-blur);
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.score-subtitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.radial-score-display {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 4px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+.score-value-text {
+  font-family: var(--font-heading);
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+  line-height: 1;
+}
+
+.score-total-scale {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.tier-badge-label {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.tier-elite {
+  background: rgba(0, 230, 118, 0.15);
+  border: 1px solid #00E676;
+  color: #00E676;
+}
+
+.tier-proficient {
+  background: rgba(108, 99, 255, 0.15);
+  border: 1px solid var(--primary-color);
+  color: var(--secondary-color);
+}
+
+.tier-needs-work {
+  background: rgba(255, 77, 141, 0.15);
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
+}

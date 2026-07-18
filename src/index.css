@@ -63,3 +63,15 @@ a {
   align-items: center;
   text-align: center;
 }
+
+/* src/index.css - Mobile Responsiveness Refinements */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 24px 16px;
+    min-height: calc(100vh - 70px);
+  }
+  
+  h1 { font-size: 1.8rem !important; }
+  h2 { font-size: 1.5rem !important; }
+  p { font-size: 0.95rem !important; }
+}

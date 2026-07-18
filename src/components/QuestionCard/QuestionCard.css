@@ -1,0 +1,62 @@
+/* src/components/QuestionCard/QuestionCard.css */
+.question-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  backdrop-filter: var(--glass-blur);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.question-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.question-index {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--secondary-color);
+}
+
+.question-category-tag {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.question-text {
+  font-size: 1.5rem;
+  line-height: 1.4;
+  color: var(--text-main);
+  margin-bottom: 24px;
+}
+
+.focus-hint-box {
+  background: rgba(108, 99, 255, 0.05);
+  border-left: 3px solid var(--primary-color);
+  padding: 16px;
+  border-radius: 0 8px 8px 0;
+}
+
+.focus-title {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.focus-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
