@@ -29,14 +29,12 @@ export default function Setup() {
       return;
     }
 
-    // Persist configuration settings locally for target page simulation ingestion
     localStorage.setItem('interview_setup', JSON.stringify({
       role: finalRole,
       level,
       count
     }));
 
-    // Transition smoothly to the simulated dynamic interview screen module
     navigate('/interview');
   };
 
@@ -48,8 +46,6 @@ export default function Setup() {
       </header>
 
       <form onSubmit={handleSubmit} className="setup-form-wrapper">
-        
-        {/* Step 1: Role Configuration */}
         <div className="setup-card">
           <div className="card-indicator"><FiBriefcase /></div>
           <h3>Select Target Position</h3>
@@ -93,7 +89,6 @@ export default function Setup() {
           )}
         </div>
 
-        {/* Step 2: Experience Tier Tuning */}
         <div className="setup-card">
           <div className="card-indicator"><FiSliders /></div>
           <h3>Select Seniority Baseline</h3>
@@ -118,7 +113,6 @@ export default function Setup() {
           </div>
         </div>
 
-        {/* Step 3: Question Depth Configuration */}
         <div className="setup-card">
           <div className="card-indicator"><FiLayers /></div>
           <h3>Total Evaluation Queries</h3>
@@ -135,7 +129,6 @@ export default function Setup() {
           </div>
         </div>
 
-        {/* Execution Pipeline Button Trigger */}
         <motion.button 
           type="submit" 
           className="initialize-engine-btn"

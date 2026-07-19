@@ -1,0 +1,13 @@
+# Inside .github/workflows/deploy.yml
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Application
+        # This injects the secret value into the Vite build environment on the cloud
+        env:
+          VITE_HF_API_KEY: ${{ secrets.VITE_HF_API_KEY }}
+        run: npm run build
+
+      - name: Deploy to GitHub Pages
+        # Your existing deployment deployment action config goes here...
