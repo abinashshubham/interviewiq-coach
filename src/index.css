@@ -75,3 +75,7 @@ a {
   h2 { font-size: 1.5rem !important; }
   p { font-size: 0.95rem !important; }
 }
+
+@media (max-width: 500px) {
+  h1 { font-size: 1.5rem !important; }
+}
