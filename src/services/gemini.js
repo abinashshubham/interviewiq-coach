@@ -1,9 +1,7 @@
 // src/services/gemini.js
 import axios from 'axios';
-
-// 🎯 REPLACE THIS WITH YOUR LIVE CLOUDFLARE WORKER ROUTE URL LINK
-const BASE_URL = 'https://hf-api-proxy.abinashpandey16.workers.dev'; 
-const MODEL_NAME = 'meta-llama/Llama-3.3-70B-Instruct';
+const BASE_URL = "https://hf-api-proxy.abinashpandey16.workers.dev";
+const MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct";
 
 /**
  * Clean post request utility targeting your secure serverless engine proxy.

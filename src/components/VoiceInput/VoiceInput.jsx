@@ -5,75 +5,58 @@ import './VoiceInput.css';
 
 export default function VoiceInput({ onTranscriptChange }) {
   const [isListening, setIsListening] = useState(false);
-  const [isSupported, setIsSupported] = useState(true);
   const recognitionRef = useRef(null);
 
   useEffect(() => {
-    // Check browser compatibility for Web Speech API
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
-      setIsSupported(false);
-      return;
-    }
+    if (!SpeechRecognition) return;
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
+    recognition.continuous = false; // Disables mobile duplication issues
+    recognition.interimResults = false;
     recognition.lang = 'en-US';
 
+    recognition.onstart = () => setIsListening(true);
+
     recognition.onresult = (event) => {
-      let finalTranscript = '';
+      let speechResult = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcriptPart = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscript += transcriptPart + ' ';
+          speechResult += event.results[i][0].transcript + ' ';
         }
       }
 
-      if (finalTranscript) {
-        onTranscriptChange(finalTranscript);
+      if (speechResult.trim()) {
+        onTranscriptChange(speechResult.trim());
       }
     };
 
-    recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
 
     recognitionRef.current = recognition;
   }, [onTranscriptChange]);
 
   const toggleListening = () => {
-    if (!recognitionRef.current) return;
+    if (!recognitionRef.current) {
+      alert('Speech recognition is not supported in this browser. Try Chrome or Edge.');
+      return;
+    }
 
     if (isListening) {
-      recognitionRef.current.stop();
+      try { recognitionRef.current.stop(); } catch (e) {}
       setIsListening(false);
     } else {
-      recognitionRef.current.start();
-      setIsListening(true);
+      try { recognitionRef.current.start(); } catch (e) {}
     }
   };
-
-  if (!isSupported) {
-    return (
-      <span className="voice-unsupported-note">
-        🎤 Voice typing not supported on this browser (Try Chrome/Edge)
-      </span>
-    );
-  }
 
   return (
     <button
       type="button"
       onClick={toggleListening}
       className={`voice-mic-btn ${isListening ? 'listening' : ''}`}
-      title={isListening ? "Stop Listening" : "Start Dictating"}
     >
       {isListening ? <FiMicOff /> : <FiMic />}
       <span>{isListening ? "Listening..." : "Dictate Answer"}</span>

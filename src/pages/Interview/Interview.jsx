@@ -5,7 +5,7 @@ import { generateQuestions } from '../../services/gemini';
 import QuestionCard from '../../components/QuestionCard/QuestionCard';
 import AnswerBox from '../../components/AnswerBox/AnswerBox';
 import Loader from '../../components/Loader/Loader';
-import VoiceInput from '../../components/VoiceInput/VoiceInput'; // 👈 Imported VoiceInput
+import VoiceInput from '../../components/VoiceInput/VoiceInput';
 import { FiArrowRight, FiClock } from 'react-icons/fi';
 import './Interview.css';
 
@@ -16,17 +16,25 @@ export default function Interview() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [currentAnswer, setCurrentAnswer] = useState('');
-  const [timeLeft, setTimeLeft] = useState(180); // 3 minutes per question
+  const [timeLeft, setTimeLeft] = useState(20); // 3 minutes per question
 
   // Pull local configurations and request questions from Gemini
   useEffect(() => {
     const configStr = localStorage.getItem('interview_setup');
     if (!configStr) {
-      navigate('/setup');
+      setTimeout(() => navigate('/setup'), 0);
       return;
     }
     
-    const { role, level, count } = JSON.parse(configStr);
+    let config;
+    try {
+      config = JSON.parse(configStr);
+    } catch {
+      setTimeout(() => navigate('/setup'), 0);
+      return;
+    }
+
+    const { role, level, count } = config;
     
     async function initSession() {
       try {
@@ -35,12 +43,23 @@ export default function Interview() {
         setLoading(false);
       } catch (err) {
         alert(err.message || 'Error configuring engine variables.');
-        navigate('/setup');
+        setTimeout(() => navigate('/setup'), 0);
       }
     }
     
     initSession();
   }, [navigate]);
+
+  // 🎯 Auto-save typed answer into state & localStorage as the user types
+  useEffect(() => {
+    if (loading) return;
+
+    setUserAnswers((prevAnswers) => {
+      const updated = { ...prevAnswers, [currentIndex]: currentAnswer };
+      localStorage.setItem('active_session_answers', JSON.stringify(updated));
+      return updated;
+    });
+  }, [currentAnswer, currentIndex, loading]);
 
   // Countdown timer effect loop
   useEffect(() => {
@@ -49,7 +68,7 @@ export default function Interview() {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          handleNext(); // Move forward if timer expires
+          handleNext(); // Automatically moves forward when time expires
           return 180;
         }
         return prev - 1;
@@ -57,21 +76,23 @@ export default function Interview() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [currentIndex, loading, questions]);
+  }, [currentIndex, loading, questions, userAnswers, currentAnswer]);
 
   const handleNext = () => {
-    // Save current index answer frame mapping
+    // Ensure final answer state is saved
     const updatedAnswers = { ...userAnswers, [currentIndex]: currentAnswer };
     setUserAnswers(updatedAnswers);
+    localStorage.setItem('active_session_answers', JSON.stringify(updatedAnswers));
     
     if (currentIndex < questions.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-      setCurrentAnswer(userAnswers[currentIndex + 1] || '');
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      // Load saved answer for the next question (or empty string if none)
+      setCurrentAnswer(userAnswers[nextIndex] || '');
       setTimeLeft(180);
     } else {
       // Complete interview pipeline
       localStorage.setItem('active_session_questions', JSON.stringify(questions));
-      localStorage.setItem('active_session_answers', JSON.stringify(updatedAnswers));
       navigate('/result');
     }
   };
