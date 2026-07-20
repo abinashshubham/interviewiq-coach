@@ -37,6 +37,7 @@
   padding: 32px;
   border-radius: 12px;
   transition: border-color 0.3s ease;
+  text-align: center;
 }
 
 .feature-icon {
@@ -44,6 +45,8 @@
   font-size: 1.8rem;
   margin-bottom: 20px;
   display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .feature-card h3 {
@@ -92,4 +95,16 @@
   padding: 14px 32px;
   border-radius: 8px;
   box-shadow: 0 4px 14px rgba(255, 77, 141, 0.3);
+  font-size: 1rem;
+}
+
+@media (max-width: 500px) {
+    h2 {
+        font-size: 1.4rem !important;
+    }
+
+    .cta-btn {
+        padding: 10px 20px;
+        font-size: 0.8rem;
+    }
 }

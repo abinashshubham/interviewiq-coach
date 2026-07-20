@@ -7,6 +7,7 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
 import Loader from './components/Loader/Loader';
 import PageTransition from './components/PageTransition/PageTransition';
+import ScrollToTop from './components/ScrollToTop'; // 👈 Imported ScrollToTop
 
 // Route chunks are loaded dynamically on demand using React.lazy for optimized bundle chunks
 const Home = lazy(() => import('./pages/Home/Home'));
@@ -19,11 +20,12 @@ const History = lazy(() => import('./pages/History/History'));
 export default function App() {
   return (
     /* 
-       HashRouter appends a system hash '#/' structure.
-       This bypasses the static server 404 refresh limitation on platforms like GitHub Pages.
-       It automatically handles base paths, so no explicit 'basename' is required.
+        HashRouter appends a system hash '#/' structure.
+        This bypasses the static server 404 refresh limitation on platforms like GitHub Pages.
+        It automatically handles base paths, so no explicit 'basename' is required.
     */
     <Router>
+      <ScrollToTop /> {/* 👈 Reset scroll position on route change */}
       <Navbar />
       <main style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 70px)' }}>
         <Suspense fallback={<Loader message="Hydrating workspace assets..." />}>
