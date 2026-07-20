@@ -5,6 +5,7 @@ import { generateQuestions } from '../../services/gemini';
 import QuestionCard from '../../components/QuestionCard/QuestionCard';
 import AnswerBox from '../../components/AnswerBox/AnswerBox';
 import Loader from '../../components/Loader/Loader';
+import VoiceInput from '../../components/VoiceInput/VoiceInput'; // 👈 Imported VoiceInput
 import { FiArrowRight, FiClock } from 'react-icons/fi';
 import './Interview.css';
 
@@ -68,11 +69,16 @@ export default function Interview() {
       setCurrentAnswer(userAnswers[currentIndex + 1] || '');
       setTimeLeft(180);
     } else {
-      // Complete interview pipeline, store values internally, pass execution contextual bounds to the next step
+      // Complete interview pipeline
       localStorage.setItem('active_session_questions', JSON.stringify(questions));
       localStorage.setItem('active_session_answers', JSON.stringify(updatedAnswers));
       navigate('/result');
     }
+  };
+
+  // Handler to append transcribed speech to current typed answer
+  const handleVoiceTranscript = (transcriptText) => {
+    setCurrentAnswer((prev) => (prev ? `${prev} ${transcriptText}` : transcriptText));
   };
 
   if (loading) return <Loader message="Generating Tailored Technical Scenario Sets..." />;
@@ -86,7 +92,6 @@ export default function Interview() {
   return (
     <div className="interview-page-wrapper">
       <div className="interview-top-bar">
-        {/* Dynamic visual progress tracker line */}
         <div className="progress-track-bg">
           <div 
             className="progress-fill" 
@@ -105,6 +110,12 @@ export default function Interview() {
         currentNumber={currentIndex + 1} 
         totalQuestions={questions.length} 
       />
+
+      <div className="answer-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <h4 style={{ margin: 0, color: '#aaa' }}>Your Response</h4>
+        {/* Voice Assistant dictation trigger */}
+        <VoiceInput onTranscriptChange={handleVoiceTranscript} />
+      </div>
 
       <AnswerBox 
         value={currentAnswer} 
