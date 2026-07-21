@@ -5,6 +5,7 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Core structural layout items are imported statically (fastest initial paint)
 import Navbar from './components/Navbar/Navbar';
+import Footer from './components/Footer/Footer';
 import Loader from './components/Loader/Loader';
 import PageTransition from './components/PageTransition/PageTransition';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
@@ -25,20 +26,25 @@ export default function App() {
         It automatically handles base paths, so no explicit 'basename' is required.
     */
     <Router>
-      <ScrollToTop /> {/* 👈 Reset scroll position on route change */}
-      <Navbar />
-      <main style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 70px)' }}>
-        <Suspense fallback={<Loader message="Hydrating workspace assets..." />}>
-          <Routes>
-            <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-            <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
-            <Route path="/setup" element={<PageTransition><Setup /></PageTransition>} />
-            <Route path="/interview" element={<PageTransition><Interview /></PageTransition>} />
-            <Route path="/result" element={<PageTransition><Result /></PageTransition>} />
-            <Route path="/history" element={<PageTransition><History /></PageTransition>} />
-          </Routes>
-        </Suspense>
-      </main>
+      <ScrollToTop /> {/* Reset scroll position on route change & floating back-to-top button */}
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Navbar />
+        
+        <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <Suspense fallback={<Loader message="Hydrating workspace assets..." />}>
+            <Routes>
+              <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+              <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
+              <Route path="/setup" element={<PageTransition><Setup /></PageTransition>} />
+              <Route path="/interview" element={<PageTransition><Interview /></PageTransition>} />
+              <Route path="/result" element={<PageTransition><Result /></PageTransition>} />
+              <Route path="/history" element={<PageTransition><History /></PageTransition>} />
+            </Routes>
+          </Suspense>
+        </main>
+
+        <Footer />
+      </div>
     </Router>
   );
 }
