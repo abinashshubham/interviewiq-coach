@@ -21,13 +21,43 @@ async function postWithRetry(url, data, retries = 3, delay = 2500) {
   }
 }
 
-function cleanAndParseJSON(text) {
+// src/services/gemini.js
+
+export function cleanAndParseJSON(rawText) {
   try {
-    const jsonMatch = text.match(/```json([\s\S]*?)```/);
-    const targetString = jsonMatch ? jsonMatch[1].trim() : text.trim();
-    return JSON.parse(targetString);
-  } catch (e) {
-    console.error("Failed to parse output as clean JSON items:", text);
+    if (!rawText) throw new Error("Empty response from AI engine.");
+
+    // 1. Strip markdown backticks
+    let cleaned = rawText
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .trim();
+
+    // 2. Extract strictly the JSON object or array payload
+    const firstBrace = cleaned.indexOf("{");
+    const lastBrace = cleaned.lastIndexOf("}");
+    const firstBracket = cleaned.indexOf("[");
+    const lastBracket = cleaned.lastIndexOf("]");
+
+    if (firstBrace !== -1 && lastBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+      cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    } else if (firstBracket !== -1 && lastBracket !== -1) {
+      cleaned = cleaned.substring(firstBracket, lastBracket + 1);
+    }
+
+    // 3. Try parsing directly first (works for properly formatted/pretty JSON)
+    try {
+      return JSON.parse(cleaned);
+    } catch {
+      // 4. Fallback: Escape raw unescaped newlines/tabs inside string values ONLY
+      const sanitized = cleaned
+        .replace(/(?<=:\s*"[^"]*)\n(?=[^"]*")/g, "\\n")
+        .replace(/[\r\t]/g, " ");
+
+      return JSON.parse(sanitized);
+    }
+  } catch (err) {
+    console.error("Failed to parse clean JSON items:", rawText);
     throw new Error("The AI model returned an unexpected response format. Please try again.");
   }
 }
