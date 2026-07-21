@@ -1,170 +1,207 @@
 // src/pages/Result/Result.jsx
-import React, { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { evaluateAnswer } from "../../services/gemini";
-import ScoreCard from "../../components/ScoreCard/ScoreCard";
-import FeedbackCard from "../../components/FeedbackCard/FeedbackCard";
-import Loader from "../../components/Loader/Loader";
-import { FiHome, FiTrendingUp } from "react-icons/fi";
-import "./Result.css";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import Loader from '../../components/Loader/Loader';
+import { evaluateAnswer } from '../../services/gemini';
+import { SessionManager } from '../../utils/sessionManager';
+import { FiAward, FiCheckCircle, FiXCircle, FiTrendingUp, FiRefreshCw, FiHome } from 'react-icons/fi';
+import './Result.css';
 
 export default function Result() {
   const navigate = useNavigate();
-  const hasEvaluated = useRef(false);
+  const [searchParams] = useSearchParams();
+  const historicId = searchParams.get('id');
+
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState("");
-  const [level, setLevel] = useState("");
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
   const [evaluations, setEvaluations] = useState([]);
-  const [aggregateScore, setAggregateScore] = useState(0);
+  const [overallScore, setOverallScore] = useState(0);
 
-  // Update the useEffect block inside src/pages/Result/Result.jsx
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const historicId = params.get("id");
-
-    // Case A: Loading an existing historical record
-    if (historicId) {
-      const pastSessions = JSON.parse(
-        localStorage.getItem("interview_history") || "[]",
-      );
-      const matchedSession = pastSessions.find((s) => s.id === historicId);
-
-      if (matchedSession) {
-        setRole(matchedSession.role);
-        setLevel(matchedSession.level);
-        setAggregateScore(matchedSession.score);
-        setEvaluations(matchedSession.details);
-        setLoading(false);
-        return;
-      }
-    }
-
-    // Case B: Processing a freshly completed active session
-    if (hasEvaluated.current) return;
-
-    const setupStr = localStorage.getItem("interview_setup");
-    const questionsStr = localStorage.getItem("active_session_questions");
-    const answersStr = localStorage.getItem("active_session_answers");
-
-    if (!setupStr || !questionsStr || !answersStr) {
-      navigate("/setup");
-      return;
-    }
-
-    hasEvaluated.current = true;
-
-    const { role: parsedRole, level: parsedLevel } = JSON.parse(setupStr);
-    const questions = JSON.parse(questionsStr);
-    const answers = JSON.parse(answersStr);
-
-    setRole(parsedRole);
-    setLevel(parsedLevel);
-
-    async function processEvaluations() {
+    async function resolveSessionData() {
       try {
-        const results = [];
-        let scoreSum = 0;
-
-        for (let i = 0; i < questions.length; i++) {
-          const qObj = questions[i];
-          const userAns = answers[i] || "No response provided.";
-          const evalData = await evaluateAnswer(
-            parsedRole,
-            parsedLevel,
-            qObj.question,
-            userAns,
-          );
-
-          results.push({
-            question: qObj.question,
-            answer: userAns,
-            evaluation: evalData,
-          });
-          scoreSum += evalData.score;
+        // 🎯 SCENARIO A: Historic Review Mode (?id=123)
+        if (historicId) {
+          const record = SessionManager.getHistoryById(historicId);
+          if (record) {
+            setQuestions(record.questions || []);
+            setAnswers(record.userAnswers || {});
+            setEvaluations(record.evaluations || []);
+            setOverallScore(record.score || 0);
+            setLoading(false);
+            return;
+          }
         }
 
-        const calculatedAverage = Math.round(scoreSum / questions.length);
-        setAggregateScore(calculatedAverage);
-        setEvaluations(results);
+        // 🎯 SCENARIO B: Fresh or In-Progress Test
+        const storedQuestions = SessionManager.getQuestions();
+        if (!storedQuestions) {
+          navigate('/dashboard');
+          return;
+        }
 
-        const pastSessions = JSON.parse(
-          localStorage.getItem("interview_history") || "[]",
-        );
-        const currentLog = {
-          id: Date.now().toString(),
-          role: parsedRole,
-          level: parsedLevel,
-          score: calculatedAverage,
-          date: new Date().toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          }),
-          details: results,
-        };
-        localStorage.setItem(
-          "interview_history",
-          JSON.stringify([currentLog, ...pastSessions]),
-        );
+        const storedAnswers = SessionManager.getAnswers();
+        const setupConfig = SessionManager.getSetup() || { role: 'Software Engineer', level: 'Intermediate' };
+        
+        setQuestions(storedQuestions);
+        setAnswers(storedAnswers);
 
-        // Clear volatile storage so refreshing doesn't regenerate the session
-        localStorage.removeItem("active_session_questions");
-        localStorage.removeItem("active_session_answers");
+        // Check if evaluations were already generated for this current active run
+        const cachedEvals = SessionManager.getActiveEvaluations();
+        if (cachedEvals) {
+          setEvaluations(cachedEvals);
+          const total = cachedEvals.reduce((sum, item) => sum + (Number(item.score) || 0), 0);
+          setOverallScore(cachedEvals.length > 0 ? Math.round(total / cachedEvals.length) : 0);
+          setLoading(false);
+          return;
+        }
+
+        // Generate brand new AI evaluations if no cache exists
+        const evalResults = [];
+        let totalScore = 0;
+
+        for (let i = 0; i < storedQuestions.length; i++) {
+          const qData = storedQuestions[i];
+          const userAns = storedAnswers[i] || 'No response provided.';
+
+          const result = await evaluateAnswer(qData.question || qData, userAns, setupConfig.role, setupConfig.level);
+          evalResults.push(result);
+          totalScore += Number(result.score) || 0;
+        }
+
+        const finalScore = Math.round(totalScore / storedQuestions.length);
+
+        setEvaluations(evalResults);
+        setOverallScore(finalScore);
+
+        // Retrieve fixed active session ID or generate fallback
+        const sessionId = SessionManager.getActiveSessionId() || Date.now().toString();
+
+        // Cache active evaluations & save to historic records
+        SessionManager.saveActiveEvaluations(evalResults);
+        SessionManager.saveSessionToHistory({
+          id: sessionId,
+          role: setupConfig.role,
+          level: setupConfig.level,
+          score: finalScore,
+          date: new Date().toLocaleDateString(),
+          questions: storedQuestions,
+          evaluations: evalResults,
+          userAnswers: storedAnswers
+        });
 
         setLoading(false);
       } catch (err) {
-        alert(err.message || "Error executing analytics processing pipelines.");
-        navigate("/setup");
+        console.error('Error resolving session analytics:', err);
+        alert('An error occurred while compiling your performance analytics.');
+        navigate('/dashboard');
       }
     }
 
-    processEvaluations();
-  }, [navigate]);
+    resolveSessionData();
+  }, [navigate, historicId]);
 
-  if (loading)
-    return <Loader message="Analyzing Technical Response Vectors..." />;
+  const handleRestart = () => {
+    SessionManager.clearActiveSession();
+    navigate('/setup');
+  };
+
+  if (loading) return <Loader message="Analyzing responses and compiling diagnostic metrics..." />;
 
   return (
-    <div className="result-page-container">
-      <header className="result-view-header">
-        <h1>Evaluation Analytics</h1>
-        <p>
-          Review comprehensive score assessments generated by the AI
-          architectural evaluation model.
-        </p>
-      </header>
+    <div className="result-layout">
+      <main className="result-content">
+        <header className="result-header">
+          <div>
+            <h1>Performance Diagnostics</h1>
+            <p>Comprehensive AI breakdown of your technical responses and skill vectors.</p>
+          </div>
+          <div className="result-action-buttons">
+            <button onClick={handleRestart} className="btn-secondary">
+              <FiRefreshCw /> <span>New Mock</span>
+            </button>
+            <button onClick={() => navigate('/dashboard')} className="btn-primary">
+              <FiHome /> <span>Dashboard</span>
+            </button>
+          </div>
+        </header>
 
-      <div className="result-summary-section">
-        <ScoreCard score={aggregateScore} role={role} level={level} />
-      </div>
+        {/* Score Banner */}
+        <section className="score-banner-card">
+          <div className="score-circle-block">
+            <FiAward className="score-trophy-icon" />
+            <div>
+              <span className="score-number">{overallScore}%</span>
+              <span className="score-subtitle">Overall Readiness Rating</span>
+            </div>
+          </div>
+          <div className="score-summary-meta">
+            <h3>
+              {overallScore >= 80 ? 'Excellent Technical Proficiency!' : overallScore >= 60 ? 'Solid Foundation' : 'Needs Practice'}
+            </h3>
+            <p>Your responses demonstrate strong domain vocabulary with room for edge-case handling refinement.</p>
+          </div>
+        </section>
 
-      <section className="detailed-feedback-list">
-        <h3>Granular Response Audits</h3>
-        {evaluations.map((item, index) => (
-          <FeedbackCard
-            key={index}
-            index={index}
-            question={item.question}
-            answer={item.answer}
-            evaluation={item.evaluation}
-          />
-        ))}
-      </section>
+        {/* Questions and Feedback Cards */}
+        <section className="evaluations-list-section">
+          <h2>Detailed Item Analysis</h2>
+          {questions.map((q, idx) => {
+            const ev = evaluations[idx] || {};
+            const userResponse = answers[idx] || 'No response provided.';
 
-      <div className="result-navigation-row">
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="action-nav-btn secondary"
-        >
-          <FiHome /> <span>Dashboard Overview</span>
-        </button>
-        <button
-          onClick={() => navigate("/setup")}
-          className="action-nav-btn primary"
-        >
-          <FiTrendingUp /> <span>Initialize New Session</span>
-        </button>
-      </div>
+            return (
+              <div key={idx} className="evaluation-card">
+                <div className="eval-card-header">
+                  <span className="eval-index-badge">Question {idx + 1}</span>
+                  <div className="eval-score-chip">
+                    <FiTrendingUp /> <span>{ev.score || 0}% Match</span>
+                  </div>
+                </div>
+
+                <h3 className="eval-question-text">{q.question || q}</h3>
+
+                <div className="eval-response-box">
+                  <h4>Your Answer:</h4>
+                  <p>{userResponse}</p>
+                </div>
+
+                <div className="eval-feedback-grid">
+                  <div className="feedback-col strengths">
+                    <h4><FiCheckCircle /> Key Strengths</h4>
+                    <ul>
+                      {Array.isArray(ev.strengths) && ev.strengths.length > 0 ? (
+                        ev.strengths.map((s, sIdx) => <li key={sIdx}>{s}</li>)
+                      ) : (
+                        <li>Good attempt at addressing the core scenario.</li>
+                      )}
+                    </ul>
+                  </div>
+
+                  <div className="feedback-col weaknesses">
+                    <h4><FiXCircle /> Areas for Improvement</h4>
+                    <ul>
+                      {Array.isArray(ev.weaknesses) && ev.weaknesses.length > 0 ? (
+                        ev.weaknesses.map((w, wIdx) => <li key={wIdx}>{w}</li>)
+                      ) : (
+                        <li>Consider expanding with concrete code patterns.</li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+
+                {ev.suggestedAnswer && (
+                  <div className="suggested-answer-box">
+                    <h4>Ideal Model Answer:</h4>
+                    <pre><code>{ev.suggestedAnswer}</code></pre>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </section>
+      </main>
     </div>
   );
 }

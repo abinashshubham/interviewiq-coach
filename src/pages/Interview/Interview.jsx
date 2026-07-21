@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateQuestions } from '../../services/gemini';
+import { SessionManager } from '../../utils/sessionManager';
 import QuestionCard from '../../components/QuestionCard/QuestionCard';
 import AnswerBox from '../../components/AnswerBox/AnswerBox';
 import Loader from '../../components/Loader/Loader';
@@ -16,26 +17,17 @@ export default function Interview() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [currentAnswer, setCurrentAnswer] = useState('');
-  const [timeLeft, setTimeLeft] = useState(180); // 3 minutes per question
+  const [timeLeft, setTimeLeft] = useState(180);
 
-  // Keep ref of latest currentAnswer to prevent stale closure bugs in timer
   const currentAnswerRef = useRef(currentAnswer);
   useEffect(() => {
     currentAnswerRef.current = currentAnswer;
   }, [currentAnswer]);
 
-  // Pull local configurations and request questions from Gemini
+  // Pull setup configuration and generate questions
   useEffect(() => {
-    const configStr = localStorage.getItem('interview_setup');
-    if (!configStr) {
-      setTimeout(() => navigate('/setup'), 0);
-      return;
-    }
-    
-    let config;
-    try {
-      config = JSON.parse(configStr);
-    } catch {
+    const config = SessionManager.getSetup();
+    if (!config) {
       setTimeout(() => navigate('/setup'), 0);
       return;
     }
@@ -46,6 +38,8 @@ export default function Interview() {
       try {
         const fetchedQuestions = await generateQuestions(role, level, count);
         setQuestions(fetchedQuestions);
+        // Initialize fresh active session, wiping old active evaluations
+        SessionManager.startNewSession(fetchedQuestions);
         setLoading(false);
       } catch (err) {
         alert(err.message || 'Error configuring engine variables.');
@@ -56,13 +50,13 @@ export default function Interview() {
     initSession();
   }, [navigate]);
 
-  // Auto-save typed answer into state & localStorage as the user types
+  // Auto-save typed answers
   useEffect(() => {
     if (loading) return;
 
     setUserAnswers((prevAnswers) => {
       const updated = { ...prevAnswers, [currentIndex]: currentAnswer };
-      localStorage.setItem('active_session_answers', JSON.stringify(updated));
+      SessionManager.saveAnswers(updated);
       return updated;
     });
   }, [currentAnswer, currentIndex, loading]);
@@ -71,7 +65,7 @@ export default function Interview() {
     const activeAnswer = currentAnswerRef.current;
     const updatedAnswers = { ...userAnswers, [currentIndex]: activeAnswer };
     setUserAnswers(updatedAnswers);
-    localStorage.setItem('active_session_answers', JSON.stringify(updatedAnswers));
+    SessionManager.saveAnswers(updatedAnswers);
     
     if (currentIndex < questions.length - 1) {
       const nextIndex = currentIndex + 1;
@@ -79,12 +73,12 @@ export default function Interview() {
       setCurrentAnswer(userAnswers[nextIndex] || '');
       setTimeLeft(180);
     } else {
-      localStorage.setItem('active_session_questions', JSON.stringify(questions));
+      // Finished all questions -> go to result
       navigate('/result');
     }
   };
 
-  // Clean Timer Effect
+  // Timer loop
   useEffect(() => {
     if (loading || questions.length === 0) return;
 
