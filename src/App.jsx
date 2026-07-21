@@ -7,7 +7,7 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
 import Loader from './components/Loader/Loader';
 import PageTransition from './components/PageTransition/PageTransition';
-import ScrollToTop from './components/ScrollToTop'; // 👈 Imported ScrollToTop
+import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 
 // Route chunks are loaded dynamically on demand using React.lazy for optimized bundle chunks
 const Home = lazy(() => import('./pages/Home/Home'));
