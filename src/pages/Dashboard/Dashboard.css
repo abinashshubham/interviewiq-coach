@@ -1,15 +1,18 @@
 /* Layout & Structural Containers */
 .dashboard-layout {
-  display: flex;
-  min-height: calc(100vh - 70px);
-  background: var(--bg-color);
+  /* display: flex; */
+  /* min-height: calc(100vh - 70px); */
+  /* background: var(--bg-color); */
+  padding: 40px 24px 80px 24px;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
-.dashboard-content {
+/* .dashboard-content {
   flex: 1;
   padding: 40px 24px 80px 24px;
   max-width: 1200px;
-}
+} */
 
 /* Header Typography */
 .dashboard-header {

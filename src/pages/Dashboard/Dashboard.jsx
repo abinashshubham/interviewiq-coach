@@ -100,7 +100,7 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-layout">
-      <Sidebar />
+      {/* <Sidebar /> */}
       
       <main className="dashboard-content">
         <header className="dashboard-header">
